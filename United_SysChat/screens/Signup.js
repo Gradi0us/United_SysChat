@@ -1,6 +1,8 @@
 import React,{useState} from "react";
 import {StyleSheet, Text, View, Button , TextInput, Image , SafeAreaView, TouchableOpacity,StatusBar,Alert } from "react-native";
 import { signInWithEmailAndPassword } from "firebase/auth";
+import { createUserWithEmailAndPassword } from "firebase/auth";
+import { onAuthStateChanged } from "firebase/auth";
 import {auth} from "../config/firebase";
 const backImage = require("../assets/vutru.jpg");
 
@@ -9,13 +11,49 @@ export default function Signup ({navigation}) {
     const [email,setEmail] = useState("");
     const [password,setPassword] = useState("");
 
-    const onHandleSignup = () => {
-        if(email !== "" && password !== "" ){
-            signInWithEmailAndPassword(auth,email,password)
-            .then(() => console.log("Signup successful"))
-            .catch((err) => Alert.alert("Signup failed", err.message))
+    // const onHandleSignup = () => {
+    //     if(email !== "" && password !== "" ){
+    //        signInWithEmailAndPassword(auth,email,password)
+    //         .then(() => console.log("Signup successful"))
+    //         .catch((err) => Alert.alert("Signup failed", err.message))
+    //     }
+    // };
+
+
+
+    // const onHandleSignup = () => {
+    //     if (email !== "" && password !== "") {
+    //       onAuthStateChanged(auth, (user) => {
+    //         if (user) {
+    //           // User is signed in, proceed with sign up logic
+    //           signInWithEmailAndPassword(auth, email, password)
+    //             .then(() => console.log("Signup successful"))
+    //             .catch((err) => Alert.alert("Signup failed", err.message));
+    //         } else {
+    //           // No user is signed in, show an error message
+    //           Alert.alert("Signup failed", "Please sign in first");
+    //         }
+    //       });
+    //     }
+    //   };
+
+      const onHandleSignup = () => {
+        if (email !== "" && password !== "") {
+          createUserWithEmailAndPassword(auth, email, password)
+            .then((userCredential) => {
+              // User sign up successful
+              const user = userCredential.user;
+              console.log("Signup successful for user:", user);
+            })
+            .catch((error) => {
+              // An error occurred during sign up
+              const errorCode = error.code;
+              const errorMessage = error.message;
+              console.log("Signup failed with error code:", errorCode);
+              console.log("Signup failed with error message:", errorMessage);
+            });
         }
-    };
+      };
 
     return (
         <View style={styles.container}>
