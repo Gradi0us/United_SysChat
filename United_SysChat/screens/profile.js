@@ -1,82 +1,167 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, Button, Modal } from 'react-native';
+import React, { useState, useEffect } from "react";
+import {
+  View,
+  Text,
+  TextInput,
+  Button,
+  Modal,
+  StyleSheet,
+  ImageBackground,
+  Image,
+} from "react-native";
 import { auth, database } from "../config/firebase";
-import {addDoc, collection } from 'firebase/firestore';
+import { addDoc, collection } from "firebase/firestore";
+import { getDoc, doc, updateDoc, setDoc } from "firebase/firestore";
 
 const UpdateProfileScreen = () => {
   const [user, setUser] = useState();
-  const [displayName, setDisplayName] = useState('');
-  const [avatarUrl, setAvatarurl] = useState('');
-  const [backGrUrl, setBackgroundUrl] = useState('');
+  const [displayName, setDisplayName] = useState("");
+  const [avatarUrl, setAvatarurl] = useState("");
+  const [backGrUrl, setBackgroundUrl] = useState("");
   const [showModal, setShowModal] = useState(false);
-  const [uidExists, setUidExists] = useState(false); 
+  const [uidExists, setUidExists] = useState(false);
+  const [userUid, setUserUid] = useState(null);
   const currentUser = auth.currentUser;
-  const usersRef = collection(database, 'users');
-
+  const usersRef = collection(database, "users");
+  useEffect(() => {
+    if (user) {
+      setUserUid(user.uid);
+    }
+  }, [user]);
   useEffect(() => {
     if (currentUser) {
-      setUser(currentUser);
-      setUidExists(true);
+      const uid = currentUser.uid;
+      const userDocRef = doc(collection(database, "users"), uid);
+      getDoc(userDocRef)
+        .then((doc) => {
+          if (doc.exists()) {
+            const data = doc.data();
+            setDisplayName(data.displayName);
+            setAvatarurl(data.avatarUrl);
+            setBackgroundUrl(data.backGrUrl);
+          } else {
+            console.log("No such document!");
+          }
+        })
+        .catch((error) => {
+          console.log("Error getting document:", error);
+        });
     }
   }, [currentUser]);
 
   const handleSave = async () => {
     try {
-      const userDocRef = collection(database, 'users').doc(user.userID);
-      const doc = await userDocRef.get();
-  
-      if (doc.exists) {
-        // If a document with the same UID already exists, update its fields
-        await userDocRef.update({
+      const docRef = doc(usersRef, currentUser.uid);
+      const docSnap = await getDoc(docRef);
+      if (docSnap.exists()) {
+        console.log("Updating existing document with ID: ", docSnap.id);
+        await updateDoc(docRef, {
           displayName: displayName,
           avatarUrl: avatarUrl,
-          backGrUrl: backGrUrl
+          backGrUrl: backGrUrl,
         });
-        console.log("Document updated with ID: ", userDocRef.id);
       } else {
-        // If no document with the same UID exists, create a new document
-        await addDoc(collection(database, 'users'), {
-          uid: user.uid,
+        console.log("Creating new document for UID: ", user.uid);
+        const userUid = user.uid;
+        console.log(userUid);
+        const userDocRef = doc(usersRef, userUid);
+        await setDoc(userDocRef, {
           displayName: displayName,
           avatarUrl: avatarUrl,
-          backGrUrl: backGrUrl
+          backGrUrl: backGrUrl,
         });
-        console.log("New document added with ID: ", userDocRef.id);
       }
-  
       setShowModal(false);
     } catch (e) {
       console.error("Error saving document: ", e);
     }
-  }
+  };
 
   return (
-    <View>
-      <Text>Display Name: {displayName}</Text>
-      <Text>Avatar Url: {avatarUrl}</Text>
-      <Text>Background Url: {backGrUrl}</Text>
+      <ImageBackground
+        source={{uri: backGrUrl}}  
+        style={styles.backgroundImage}
+      >
+        <View style={styles.overlay}>
+          <View style={styles.container}>
+            <Image
+              source={{uri: avatarUrl}}
+              style={styles.image}
+            />
+            <View style={styles.infoContainer}>
+              <Text style={styles.name}>{displayName}</Text>
+              <Text style={styles.id}>United_SysChat</Text>
+            </View>
+          </View>
+        </View>
+     
       <Button title="Edit Profile" onPress={() => setShowModal(true)} />
       <Modal visible={showModal} animationType="slide">
         <View>
           <TextInput
             placeholder="Display Name"
             value={displayName}
-            onChangeText={text => setDisplayName(text)}
+            onChangeText={(text) => setDisplayName(text)}
           />
           <TextInput
             placeholder="Avatar Url"
             value={avatarUrl}
-            onChangeText={text => setAvatarurl(text)}
+            onChangeText={(text) => setAvatarurl(text)}
           />
           <TextInput
             placeholder="Background Url"
             value={backGrUrl}
-            onChangeText={text => setBackgroundUrl(text)}
+            onChangeText={(text) => setBackgroundUrl(text)}
           />
           <Button title="Save" onPress={handleSave} />
         </View>
       </Modal>
-    </View>
+      </ImageBackground>
   );
-}
+};
+const styles = StyleSheet.create({
+  backgroundImage: {
+    flex: 1,
+    resizeMode: "cover",
+    height: "20%",
+  },
+  overlay: {},
+  pressable: {
+    padding: 15,
+    borderRadius: 10,
+    marginBottom: 10,
+    backgroundColor: "#80EBFD",
+  },
+  text: {
+    color: "white",
+    fontSize: 15,
+    textAlign: "center",
+  },
+  container: {
+    marginTop: 100,
+    flexDirection: "row",
+    padding: 20,
+  },
+  image: {
+    marginTop: 10,
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    marginRight: 20,
+  },
+  infoContainer: {
+    marginTop: 40,
+    justifyContent: "center",
+  },
+  name: {
+    fontSize: 20,
+    fontWeight: "bold",
+  },
+  id: {
+    marginTop: 5,
+    fontSize: 16,
+    color: "gray",
+  },
+});
+
 export default UpdateProfileScreen;
