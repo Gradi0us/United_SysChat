@@ -19,7 +19,7 @@ import { auth, database } from "../config/firebase";
 import { useNavigation } from "@react-navigation/native";
 import { AntDesign } from "@expo/vector-icons";
 import colors from "../colors";
-
+import { Avatar } from "react-native-elements";
 import { getDoc, doc, updateDoc, setDoc } from "firebase/firestore";
 export default function Chat() {
   const [user, setUser] = useState();
@@ -99,18 +99,23 @@ const onSend = useCallback((messages = []) =>{
 },[])
   return (<GiftedChat 
     messages={messages}
-    onSend={messages =>onSend(messages)}
+    onSend={messages => onSend(messages)}
     user={{
-
-        _id:auth?.currentUser?.email,
-       
-        avatar:{uri:avatarUrl},
-        
+      _id:auth?.currentUser?.email,
+      avatar:{uri:avatarUrl},
     }} 
     messagesContainerStyle={{
       backgroundColor: '#fff',
     }}
-   
-     />
+    renderAvatar={({ currentMessage }) => (
+      <Avatar
+        size={40}
+        rounded
+        source={currentMessage.user.avatar}
+      />
+    )}
+    renderUsernameOnMessage
+  />
+  
      );
 }
