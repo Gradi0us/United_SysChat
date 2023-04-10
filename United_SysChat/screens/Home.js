@@ -15,12 +15,32 @@ function MyHeader(props) {
   useEffect(() => {
     navigation.setOptions({
       headerLeft: () => (
+        <View style={{flexDirection:"row"}}>
+
+        <TouchableOpacity  onPress={() => navigation.navigate('search') }>
         <FontAwesome
           name="search"
           size={24}
           color={Colors.gray}
           style={{ marginLeft: 15 }}
         />
+        </TouchableOpacity>
+        
+        <FontAwesome
+        name="bell"
+        size={24}
+        color={Colors.gray}
+        style={{ marginLeft: 15 }}
+      />
+      <FontAwesome
+      name="users"
+      size={24}
+      color={Colors.gray}
+      style={{ marginLeft: 15 }}
+    />
+        </View>
+        
+        
       ),
       headerRight: () => (
         <TouchableOpacity

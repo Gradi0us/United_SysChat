@@ -17,6 +17,7 @@ const UpdateProfileScreen = () => {
   const [user, setUser] = useState();
   const [displayName, setDisplayName] = useState("");
   const [avatarUrl, setAvatarurl] = useState("");
+  const [nickname, setnickName] = useState("");
   const [backGrUrl, setBackgroundUrl] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [uidExists, setUidExists] = useState(false);
@@ -39,6 +40,7 @@ const UpdateProfileScreen = () => {
             setDisplayName(data.displayName);
             setAvatarurl(data.avatarUrl);
             setBackgroundUrl(data.backGrUrl);
+            setnickName(data.nickname);
           } else {
             console.log("No such document!");
           }
@@ -59,6 +61,7 @@ const UpdateProfileScreen = () => {
           displayName: displayName,
           avatarUrl: avatarUrl,
           backGrUrl: backGrUrl,
+          nickname: nickname,
         });
       } else {
         console.log("Creating new document for UID: ", user.uid);
@@ -69,6 +72,7 @@ const UpdateProfileScreen = () => {
           displayName: displayName,
           avatarUrl: avatarUrl,
           backGrUrl: backGrUrl,
+          nickname: nickname,
         });
       }
       setShowModal(false);
@@ -108,6 +112,11 @@ const UpdateProfileScreen = () => {
             value={avatarUrl}
             onChangeText={(text) => setAvatarurl(text)}
           />
+          <TextInput
+          placeholder="nickname"
+          value={nickname}
+          onChangeText={(text) => setnickName(text)}
+        />
           <TextInput
             placeholder="Background Url"
             value={backGrUrl}

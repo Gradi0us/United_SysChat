@@ -7,6 +7,7 @@ import Chat from "./screens/Chat"
 import Login from "./screens/Login";
 import Signup from "./screens/Signup";
 import Home from "./screens/Home";
+import search from "./screens/search";
 import profile from "./screens/profile";
 import { NavigationContainer } from "@react-navigation/native";
 import { auth } from "./config/firebase";
@@ -30,7 +31,7 @@ function ChatStack(){
     <Stack.Screen name="Home" component={Home} />
     <Stack.Screen name="profile" component={profile} />
     <Stack.Screen name="Chat" component={Chat}/>
-   
+    <Stack.Screen name="search" component={search}/>
     </Stack.Navigator>
   );
 }
