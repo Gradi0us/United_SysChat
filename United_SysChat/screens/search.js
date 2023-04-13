@@ -19,10 +19,31 @@ import {
   doc,
   addDoc,
   getDoc,
+  setDoc,
+  docs,
+  deleteDoc,
+
 } from "firebase/firestore";
 import { FontAwesome } from '@expo/vector-icons';
 import Colors from '../colors';
 const Search = () => {
+
+  //get user infor
+  const [user, setUser] = useState();
+  const [userUid, setUserUid] = useState(null);
+  const [docId, setDocId] = useState(null);
+  const [from_user_id, setFromUserId] = useState('');
+  const [to_user_id,setToUserID] = useState('');
+  const [status,setStatus]=useState(null)
+  const [renderKey, setRenderKey] = useState(0);
+ // const [selectedUserId, setSelectedUserId] = useState(null);
+  //
+  //database access
+  const friendsrequest = collection(database, "friends");
+  const usersRef = collection(database, "users");
+  //
+  //firestore api
+  //
   const [searchText, setSearchText] = useState("");
   const [data, setData] = useState([]);
   const [displayName, setDisplayName] = useState("");
@@ -32,16 +53,23 @@ const Search = () => {
   const [avatarUrl, setAvatarurl] = useState("");
   const [nickname, setnickName] = useState("");
   const currentUser = auth.currentUser;
-  const usersRef = collection(database, "users");
+
   const handleSearchTextChange = (text) => {
     setSearchText(text);
   };
 
   useEffect(() => {
+    if (user) {
+      setUserUid(user.uid);
+    }
+  }, [user]);
+  useEffect(() => {
     if (currentUser) {
       const uid = currentUser.uid;
       const userDocRef = doc(collection(database, "users"), uid);
-      getDoc(userDocRef)
+      const friends = doc(collection(database, "friends"));
+      getDoc(userDocRef,friends)
+      
         .then((doc) => {
           if (doc.exists()) {
             const data = doc.data();
@@ -49,6 +77,7 @@ const Search = () => {
             setAvatarurl(data.avatarUrl);
             setBackgroundUrl(data.backGrUrl);
             setnickName(data.nickname);
+            setStatus(data.status);
           } else {
             console.log("No such document!");
           }
@@ -58,53 +87,192 @@ const Search = () => {
         });
     }
   }, [currentUser]);
+
+  
+  
+  useEffect(() => {
+    const getStatus = async () => {
+      if (currentUser) {
+        const uid = currentUser.uid;
+        const q = query(
+          collection(database, "friends"),
+          where("from_user_id", "==", uid)
+        );
+        const querySnapshot = await getDocs(q);
+        querySnapshot.forEach((doc) => {
+          const data = doc.data();
+          setStatus(data.status);
+         
+        });
+      }
+    };
+  
+    getStatus();
+  }, [currentUser]);
+
   useEffect(() => {
     const getUsers = async () => {
-      const email = searchText;
+      const nicknamesearch = searchText;
       try {
         const q = query(
           collection(database, "users"),
-          where("nickname", "==", email)
+          where("nickname", "==", nicknamesearch)
         );
         const querySnapshot = await getDocs(q);
         const users = [];
         querySnapshot.forEach((doc) => {
           users.push(doc.data());
+          setDocId(doc.id);
         });
         setData(users);
       } catch (error) {
         console.log(error);
       }
     };
+   
+    
 
     getUsers();
   }, [searchText]);
-
+  const cancelRequest = async () => {
+    try {
+      const currentUserUid = currentUser.uid;
+      const selectedUserId = docId;
+      const docRef = collection(database, "friends");
+      const querySnapshot = await getDocs(
+        query(docRef, where("from_user_id", "==", currentUserUid), where("to_user_id", "==", selectedUserId))
+      );
+  
+      if (querySnapshot.size > 0) {
+        querySnapshot.forEach(async (doc) => {
+          await deleteDoc(doc.ref);
+        });
+      } else {
+        console.log("Không tìm thấy dữ liệu phù hợp");
+      }
+    } catch (e) {
+      console.error("Lỗi khi xóa tài liệu: ", e);
+    }
+  };
+  
+  const friendsRequest = async () => {
+    try {
+      const currentUserUid = currentUser.uid;
+      const selectedUserId = docId;
+      const docRef = collection(database, "friends");
+      const querySnapshot = await getDocs(
+        query(docRef, where("from_user_id", "==", currentUserUid), where("to_user_id", "==", selectedUserId))
+      );
+  
+      if (querySnapshot.size > 0) {
+        console.log("Friend request already exists");
+      } else {
+        console.log("Creating new friend request");
+        await addDoc(docRef, {
+          status: "pending",
+          from_user_id: currentUserUid,
+          to_user_id: selectedUserId,
+        });
+      }
+    } catch (e) {
+      console.error("Error saving document: ", e);
+    }
+  };
+  
+  
+  
+  useEffect(() => {
+    // Khi trạng thái của status thay đổi, tăng giá trị của state renderKey để cập nhật lại renderItem
+    setRenderKey(renderKey + 1);
+  }, [status]);
   const renderItem = ({ item }) => (
+  
     <TouchableOpacity
-      onPress={() => {
-        setSelectedItem(item);
-        setShowModal(true);
-        setAvatarurl(item.avatarUrl);
-        setBackgroundUrl(item.backGrUrl);
-        setDisplayName(item.displayName); 
+    key={renderKey}
+      style={{
+        justifyContent:'center',
+        flexDirection: 'row',
+        width: '100%',
+        borderRadius: 5,
+        borderWidth: 1,
       }}
     >
-      <View style={{ padding: 10, flexDirection: "row" }}>
-        <Image
-          source={{ uri: item.avatarUrl }}
-          style={{ height: 40, width: 40, borderRadius: 40 }}
-        ></Image>
-        <View style={{ marginTop: 3 }}>
-          <Text style={{ marginLeft: 5, fontWeight: "bold" }}>
-            {item.displayName}
-          </Text>
-          <Text style={{ marginLeft: 9, fontSize: 11 }}>{item.nickname}</Text>
+      <TouchableOpacity
+        onPress={() => {
+          setSelectedItem(item);
+          setShowModal(true);
+          setAvatarurl(item.avatarUrl);
+          setBackgroundUrl(item.backGrUrl);
+          setDisplayName(item.displayName);
+          setStatus(item.status);
+        }}
+      >
+        <View style={{ padding: 10, flexDirection: 'row' }}>
+          <Image
+            source={{ uri: item.avatarUrl }}
+            style={{ height: 40, width: 40, borderRadius: 40 }}
+          />
+          <View style={{ marginTop: 3 }}>
+            <Text style={{ marginLeft: 5, fontWeight: 'bold' }}>
+              {item.displayName}
+            </Text>
+            <Text style={{ marginLeft: 9, fontSize: 11 }}>
+              {item.nickname}
+            </Text>
+        
+          </View>
         </View>
+      </TouchableOpacity>
+      <View style={{ width: '17%' }}>
+   
+    
+  </View>
+      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+        <TouchableOpacity
+          style={{
+            marginRight: 10,
+            backgroundColor: '#1E90FF',
+            padding: 10,
+            borderRadius: 5,
+          }}
+        >
+          <Text style={{ color: 'white' }}>Message</Text>
+        </TouchableOpacity>
+  
+       {status === 'undefined' || !status && (
+        <TouchableOpacity
+            style={{
+              backgroundColor: 'white',
+              padding: 10,
+              borderRadius: 5,
+              borderWidth: 1,
+              borderColor: '#1E90FF',
+            }}
+            onPress={() => friendsRequest()}
+          >
+            <Text style={{ color: '#1E90FF' }}>Add Friend</Text>
+          </TouchableOpacity>
+       )}
+          
+        
+        {status === 'pending' && (
+          <TouchableOpacity
+            style={{
+              backgroundColor: 'white',
+              padding: 10,
+              borderRadius: 5,
+              borderWidth: 1,
+              borderColor: 'gray',
+            }}
+            onPress={() => cancelRequest()}
+          >
+            <Text style={{ color: 'gray' }}>Cancel Request</Text>
+          </TouchableOpacity>
+        )}
       </View>
     </TouchableOpacity>
   );
- 
+  
   const keyExtractor = (item) => item.id;
 
   return (

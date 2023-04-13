@@ -25,13 +25,15 @@ function MyHeader(props) {
           style={{ marginLeft: 15 }}
         />
         </TouchableOpacity>
-        
+        <TouchableOpacity onPress={() =>navigation.navigate('notif')}>
         <FontAwesome
         name="bell"
         size={24}
         color={Colors.gray}
         style={{ marginLeft: 15 }}
       />
+        </TouchableOpacity>
+        
       <FontAwesome
       name="users"
       size={24}
