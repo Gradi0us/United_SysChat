@@ -64,8 +64,8 @@ const UpdateProfileScreen = () => {
           nickname: nickname,
         });
       } else {
-        console.log("Creating new document for UID: ", user.uid);
-        const userUid = user.uid;
+        console.log("Creating new document for UID: ", currentUser.uid);
+        const userUid = currentUser.uid;
         console.log(userUid);
         const userDocRef = doc(usersRef, userUid);
         await setDoc(userDocRef, {

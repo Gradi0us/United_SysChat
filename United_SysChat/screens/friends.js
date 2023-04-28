@@ -135,20 +135,13 @@ const Search = () => {
   useEffect(() => {
     const getUsers = async () => {
       const nicknamesearch = searchText;
-      let q,a;
+      let q;
       if (!nicknamesearch) {
         q = query(
           collection(database, "friends"),
           where("status", "==", "accepted")
          
         );
-        if(q.size >0){
-          a = query(
-            collection(database, "friends"),
-            where("from_user_id", "!=",currentUser.uid ) || where("to_user_id", "!=",currentUser.uid),
-
-          );
-        }
       } else {
         q = query(
           collection(database, "users"),
@@ -156,8 +149,31 @@ const Search = () => {
         );
       }
       try {
-        console.log(a)
-        const querySnapshot = await getDocs(q||a);
+        const querySnapshot = await getDocs(q);
+        const users = [];
+        querySnapshot.forEach((doc) => {
+          const data = doc.data();
+          const id = doc.id;
+          if (id !== currentUser.uid) {
+            users.push(data);
+            setDocId(id);
+          }
+        });
+        setData(users);
+      } catch (error) {
+        console.log(error);
+      }
+    };
+    getUsers();
+  }, [searchText, currentUser.uid]);
+  
+  useEffect(() => {
+    const getUsers = async () => {
+      const nicknamesearch = searchText;
+      let q;
+     
+      try {
+        const querySnapshot = await getDocs(q);
         const users = [];
         querySnapshot.forEach((doc) => {
           const data = doc.data();
