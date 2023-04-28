@@ -11,9 +11,11 @@ import { getDoc, doc, updateDoc, setDoc } from "firebase/firestore";
 function MyHeader(props) {
   const { displayName, avatarUrl } = props;
   const navigation = useNavigation();
-
+ 
   useEffect(() => {
+   
     navigation.setOptions({
+     
       headerLeft: () => (
         <View style={{flexDirection:"row"}}>
 
@@ -25,6 +27,7 @@ function MyHeader(props) {
           style={{ marginLeft: 15 }}
         />
         </TouchableOpacity>
+
         <TouchableOpacity onPress={() =>navigation.navigate('notif')}>
         <FontAwesome
         name="bell"
@@ -33,13 +36,22 @@ function MyHeader(props) {
         style={{ marginLeft: 15 }}
       />
         </TouchableOpacity>
-        
+        <TouchableOpacity onPress={() =>navigation.navigate('friends')}>
       <FontAwesome
       name="users"
       size={24}
       color={Colors.gray}
       style={{ marginLeft: 15 }}
     />
+    </TouchableOpacity>
+    <TouchableOpacity onPress={() =>navigation.navigate('weather')}>
+    <FontAwesome
+    name="cloud"
+    size={24}
+    color={Colors.gray}
+    style={{ marginLeft: 15 }}
+  />
+    </TouchableOpacity>
         </View>
         
         
@@ -171,6 +183,7 @@ return(
     }
   
 })
+
    export default Home;
 
    

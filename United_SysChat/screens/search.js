@@ -22,6 +22,7 @@ import {
   setDoc,
   docs,
   deleteDoc,
+  updateDoc
 
 } from "firebase/firestore";
 import { FontAwesome } from '@expo/vector-icons';
@@ -97,6 +98,27 @@ const Search = () => {
         const q = query(
           collection(database, "friends"),
           where("from_user_id", "==", uid)
+       
+        );
+        const querySnapshot = await getDocs(q);
+        querySnapshot.forEach((doc) => {
+          const data = doc.data();
+          setStatus(data.status);
+         
+        });
+      }
+    };
+  
+    getStatus();
+  }, [currentUser]);
+  useEffect(() => {
+    const getStatus = async () => {
+      if (currentUser) {
+        const uid = currentUser.uid;
+        const q = query(
+          collection(database, "friends"),
+       
+          where("to_user_id", "==", uid)
         );
         const querySnapshot = await getDocs(q);
         querySnapshot.forEach((doc) => {
@@ -121,19 +143,21 @@ const Search = () => {
         const querySnapshot = await getDocs(q);
         const users = [];
         querySnapshot.forEach((doc) => {
-          users.push(doc.data());
-          setDocId(doc.id);
+          const data = doc.data();
+          const id = doc.id;
+          if (id !== currentUser.uid) { // add this condition
+            users.push(data);
+            setDocId(id);
+          }
         });
         setData(users);
       } catch (error) {
         console.log(error);
       }
     };
-   
-    
-
     getUsers();
-  }, [searchText]);
+  }, [searchText, currentUser.uid]); // add currentUser.uid as a dependency
+  
   const cancelRequest = async () => {
     try {
       const currentUserUid = currentUser.uid;
@@ -157,15 +181,39 @@ const Search = () => {
   
   const friendsRequest = async () => {
     try {
+      const docRef = collection(database, "friends");
       const currentUserUid = currentUser.uid;
       const selectedUserId = docId;
-      const docRef = collection(database, "friends");
       const querySnapshot = await getDocs(
-        query(docRef, where("from_user_id", "==", currentUserUid), where("to_user_id", "==", selectedUserId))
+        query(
+          docRef,
+          where("from_user_id", "==", currentUserUid),
+          where("to_user_id", "==", selectedUserId)
+        )
       );
-  
+      const querydoc = await getDocs(
+        query(
+          docRef,
+          where("to_user_id", "==", currentUserUid),
+          where("from_user_id", "==", selectedUserId)
+        )
+      );
+      
+      if (querydoc.size > 0) {
+        const friendRequestDocs = querySnapshot.docs;
+        if (friendRequestDocs.length > 0) {
+          const friendRequestDoc = friendRequestDocs[0];
+          await updateDoc(friendRequestDoc.ref, { status: "accepted" });
+          console.log("Friend request accepted");
+        } else {
+          console.log("No friend request found");
+        }
+      }
+      
       if (querySnapshot.size > 0) {
         console.log("Friend request already exists");
+       
+          
       } else {
         console.log("Creating new friend request");
         await addDoc(docRef, {
@@ -178,6 +226,7 @@ const Search = () => {
       console.error("Error saving document: ", e);
     }
   };
+  
   
   
   
@@ -267,6 +316,20 @@ const Search = () => {
             onPress={() => cancelRequest()}
           >
             <Text style={{ color: 'gray' }}>Cancel Request</Text>
+          </TouchableOpacity>
+        )}
+        {status === 'accepted' && (
+          <TouchableOpacity
+            style={{
+              backgroundColor: 'white',
+              padding: 10,
+              borderRadius: 5,
+              borderWidth: 1,
+              borderColor: 'gray',
+            }}
+            // onPress={() => cancelRequest()}
+          >
+            <Text style={{ color: 'gray' }}>FRIEND</Text>
           </TouchableOpacity>
         )}
       </View>

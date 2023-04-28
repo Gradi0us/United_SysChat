@@ -10,6 +10,8 @@ import Home from "./screens/Home";
 import search from "./screens/search";
 import profile from "./screens/profile";
 import notif from "./screens/notif";
+import friends from "./screens/friends";
+import weather from "./screens/weather";
 import { NavigationContainer } from "@react-navigation/native";
 import { auth } from "./config/firebase";
   
@@ -29,11 +31,13 @@ const AuthenticatedUserProvider = ({children }) => {
 function ChatStack(){
   return(
     <Stack.Navigator defaultScreenOptions={Home} >
-    <Stack.Screen name="Home" component={Home} />
-    <Stack.Screen name="profile" component={profile} />
-    <Stack.Screen name="Chat" component={Chat}/>
-    <Stack.Screen name="notif" component={notif}/>
-    <Stack.Screen name="search" component={search}/>
+    <Stack.Screen name="home" component={Home}  options={{ headerTitle:"" }} />
+    <Stack.Screen name="profile" component={profile}options={{ headerTitle:"Profile" }} />
+    <Stack.Screen name="Chat" component={Chat} options={{ headerTitle:"United_SysChat" }}/>
+    <Stack.Screen name="notif" component={notif} options={{ headerTitle:"Notification" }}/>
+    <Stack.Screen name="weather" component={weather} options={{ headerTitle:"Weather_Properties" }}/>
+    <Stack.Screen name="friends" component={friends} />
+    <Stack.Screen name="search" component={search} />
     </Stack.Navigator>
   );
 }
