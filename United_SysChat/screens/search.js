@@ -35,7 +35,8 @@ const Search = () => {
   const [docId, setDocId] = useState(null);
   const [from_user_id, setFromUserId] = useState('');
   const [to_user_id,setToUserID] = useState('');
-  const [status,setStatus]=useState(null)
+  const [status,setStatus]=useState('')
+  const [status1,setStatus1]=useState(null)
   const [renderKey, setRenderKey] = useState(0);
  // const [selectedUserId, setSelectedUserId] = useState(null);
   //
@@ -54,6 +55,7 @@ const Search = () => {
   const [avatarUrl, setAvatarurl] = useState("");
   const [nickname, setnickName] = useState("");
   const currentUser = auth.currentUser;
+  const currentUser1 = auth.currentUser;
 
   const handleSearchTextChange = (text) => {
     setSearchText(text);
@@ -90,47 +92,84 @@ const Search = () => {
   }, [currentUser]);
 
   
+  /// lỗi ở đây
+  // useEffect(() => {
+  //   const getStatus = async () => {
+  //     if (currentUser) {
+  //       const uid = currentUser.uid;
+  //       const q = query(
+  //         collection(database, "friends"),
+  //         where("from_user_id", "==", uid)
+       
+  //       )
+  //       const querySnapshot = await getDocs(q);
+  //       querySnapshot.forEach((doc) => {
+  //         const data = doc.data();
+  //         setStatus(data.status);
+         
+  //       });
+  //     }else if(currentUser){
+  //       const uid = currentUser.uid;
+  //       const q = query(
+  //         collection(database, "friends"),
+  //         where("from_user_id", "!=", uid)
+  //       )
+  //       const querySnapshot = await getDocs(q);
+  //     }else if(currentUser1){
+  //       const uid1 = currentUser1.uid;
+  //       const q = query(
+  //         collection(database, "friends"),
+  //         where("to_user_id", "==", uid1)
+       
+  //       )
+  //       const querySnapshot = await getDocs(q);
+  //       querySnapshot.forEach((doc) => {
+  //         const data = doc.data();
+  //         setStatus(data.status);
+  //       });
+  //     }else {
+        
+  //       const q = query(
+  //         collection(database, "friends"),
+  //         where("to_user_id", "!=", uid)
+       
+  //       )
+  //       const querySnapshot = await getDocs(q);
+      
+  //     }
+  //   };
   
+  //   getStatus();
+  // }, [currentUser || currentUser1]);
+ 
   useEffect(() => {
-    const getStatus = async () => {
+    const getStatus = async () => { 
       if (currentUser) {
         const uid = currentUser.uid;
         const q = query(
           collection(database, "friends"),
-          where("from_user_id", "==", uid)
-       
         );
         const querySnapshot = await getDocs(q);
+        let found = false;
         querySnapshot.forEach((doc) => {
           const data = doc.data();
-          setStatus(data.status);
-         
+          if (data.from_user_id == uid) {
+            console.log(data.from_user_id)
+            setStatus(data.status);
+            found = true;
+          }
         });
+        if (!found) {
+         status=""
+        }
+      } else {
+        status=""
       }
     };
   
     getStatus();
   }, [currentUser]);
-  useEffect(() => {
-    const getStatus = async () => {
-      if (currentUser) {
-        const uid = currentUser.uid;
-        const q = query(
-          collection(database, "friends"),
-       
-          where("to_user_id", "==", uid)
-        );
-        const querySnapshot = await getDocs(q);
-        querySnapshot.forEach((doc) => {
-          const data = doc.data();
-          setStatus(data.status);
-         
-        });
-      }
-    };
   
-    getStatus();
-  }, [currentUser]);
 
   useEffect(() => {
     const getUsers = async () => {
@@ -288,7 +327,7 @@ const Search = () => {
           <Text style={{ color: 'white' }}>Message</Text>
         </TouchableOpacity>
   
-       {status === 'undefined' || !status && (
+       {status == 'undefined' || !status && (
         <TouchableOpacity
             style={{
               backgroundColor: 'white',
@@ -304,7 +343,7 @@ const Search = () => {
        )}
           
         
-        {status === 'pending' && (
+        {status == 'pending' && (
           <TouchableOpacity
             style={{
               backgroundColor: 'white',
@@ -318,7 +357,7 @@ const Search = () => {
             <Text style={{ color: 'gray' }}>Cancel Request</Text>
           </TouchableOpacity>
         )}
-        {status === 'accepted' && (
+        {status == 'accepted' && (
           <TouchableOpacity
             style={{
               backgroundColor: 'white',
@@ -332,6 +371,7 @@ const Search = () => {
             <Text style={{ color: 'gray' }}>FRIEND</Text>
           </TouchableOpacity>
         )}
+       
       </View>
     </TouchableOpacity>
   );

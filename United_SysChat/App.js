@@ -32,7 +32,7 @@ function ChatStack(){
   return(
     <Stack.Navigator defaultScreenOptions={Home} >
     <Stack.Screen name="home" component={Home}  options={{ headerTitle:"" }} />
-    <Stack.Screen name="profile" component={profile}options={{ headerTitle:"Profile" }} />
+    <Stack.Screen name="profile" component={profile} options={{ headerTitle:"Profile" }} />
     <Stack.Screen name="Chat" component={Chat} options={{ headerTitle:"United_SysChat" }}/>
     <Stack.Screen name="notif" component={notif} options={{ headerTitle:"Notification" }}/>
     <Stack.Screen name="weather" component={weather} options={{ headerTitle:"Weather_Properties" }}/>
